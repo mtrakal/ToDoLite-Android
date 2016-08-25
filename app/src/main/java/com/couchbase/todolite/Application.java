@@ -1,7 +1,6 @@
 package com.couchbase.todolite;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.widget.Toast;
@@ -9,31 +8,30 @@ import android.widget.Toast;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseOptions;
-import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.auth.Authenticator;
 import com.couchbase.lite.auth.AuthenticatorFactory;
 import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.util.Log;
-import com.couchbase.todolite.util.StringUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Application extends android.app.Application implements Replication.ChangeListener {
     public static final String TAG = "ToDoLite";
 
-    private static final String SYNC_URL_HTTP = "http:<host>:<port>/todolite";
+    private static final String COUCH_DB = "TODO"; // TODO: 25.08.2016
+    private static final String COUCH_USER = "TODO";// TODO: 25.08.2016
+    private static final String COUCH_PASS = "TODO"; // TODO: 25.08.2016
+    private static final String SYNC_URL_HTTP = "https://couch.myapp.com/" + COUCH_DB + "/"; // TODO: 25.08.2016
 
     // Storage Type: .SQLITE_STORAGE or .FORESTDB_STORAGE
-    private static final String STORAGE_TYPE = Manager.SQLITE_STORAGE;
+    private static final String STORAGE_TYPE = Manager.FORESTDB_STORAGE;
 
     // Encryption (Don't store encryption key in the source code. We are doing it here just as an example):
     private static final boolean ENCRYPTION_ENABLED = false;
-    private static final String ENCRYPTION_KEY = "seekrit";
+    private static final String ENCRYPTION_KEY = COUCH_PASS;
 
     // Logging:
     private static final boolean LOGGING_ENABLED = true;
@@ -88,7 +86,7 @@ public class Application extends android.app.Application implements Replication.
 
     private Database getUserDatabase(String name) {
         try {
-            String dbName = "db" + StringUtil.MD5(name);
+            String dbName = "local-bb-" + name;
             DatabaseOptions options = new DatabaseOptions();
             options.setCreate(true);
             options.setStorageType(STORAGE_TYPE);
@@ -100,36 +98,19 @@ public class Application extends android.app.Application implements Replication.
         return null;
     }
 
-    public void loginAsFacebookUser(Activity activity, String token, String userId, String name) {
-        setCurrentUserId(userId);
-        setDatabase(getUserDatabase(userId));
-
-        String profileDocID = "p:" + userId;
-        Document profile = mDatabase.getExistingDocument(profileDocID);
-        if (profile == null) {
-            try {
-                Map<String, Object> properties = new HashMap<String, Object>();
-                properties.put("type", "profile");
-                properties.put("user_id", userId);
-                properties.put("name", name);
-
-                profile = mDatabase.getDocument(profileDocID);
-                profile.putProperties(properties);
-
-                // Migrate guest data to user:
-                UserProfile.migrateGuestData(getUserDatabase(GUEST_DATABASE_NAME), profile);
-            } catch (CouchbaseLiteException e) {
-                Log.e(TAG, "Cannot create a new user profile", e);
-            }
-        }
-
-        startReplication(AuthenticatorFactory.createFacebookAuthenticator(token));
-        login(activity);
-    }
 
     public void loginAsGuest(Activity activity) {
         setDatabase(getUserDatabase(GUEST_DATABASE_NAME));
         setCurrentUserId(null);
+        login(activity);
+    }
+
+    public void loginRepl(Activity activity) {
+        String userId = COUCH_USER;
+        setCurrentUserId(userId);
+        setDatabase(getUserDatabase(userId));
+
+        startReplication(AuthenticatorFactory.createBasicAuthenticator(COUCH_USER, COUCH_PASS));
         login(activity);
     }
 
@@ -159,7 +140,9 @@ public class Application extends android.app.Application implements Replication.
         return this.mCurrentUserId;
     }
 
-    /** Replicator */
+    /**
+     * Replicator
+     */
 
     private URL getSyncUrl() {
         URL url = null;
@@ -224,7 +207,9 @@ public class Application extends android.app.Application implements Replication.
         }
     }
 
-    /** Display error message */
+    /**
+     * Display error message
+     */
 
     public void showErrorMessage(final String errorMessage, final Throwable throwable) {
         runOnUiThread(new Runnable() {

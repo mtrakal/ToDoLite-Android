@@ -15,8 +15,9 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true">
 
-        <com.facebook.login.widget.LoginButton
-            android:id="@+id/facebook_login_button"
+        <Button
+            android:text="connect"
+            android:id="@+id/connect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginRight="19dp"
@@ -31,7 +32,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginLeft="16dp"
-            android:layout_below="@+id/facebook_login_button"
+            android:layout_below="@+id/connect"
             android:text="@string/button_guest_login" />
 
     </RelativeLayout>

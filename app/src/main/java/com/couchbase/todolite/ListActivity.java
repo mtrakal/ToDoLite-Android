@@ -4,8 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,6 +24,8 @@ import com.couchbase.lite.Emitter;
 import com.couchbase.lite.LiveQuery;
 import com.couchbase.lite.Mapper;
 import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.util.Log;
 import com.couchbase.todolite.util.LiveQueryAdapter;
 
@@ -134,7 +136,8 @@ public class ListActivity extends AppCompatActivity {
         });
 
         alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) { }
+            public void onClick(DialogInterface dialog, int whichButton) {
+            }
         });
 
         alert.show();
@@ -145,7 +148,7 @@ public class ListActivity extends AppCompatActivity {
         if (view.getMap() == null) {
             Mapper mapper = new Mapper() {
                 public void map(Map<String, Object> document, Emitter emitter) {
-                    String type = (String)document.get("type");
+                    String type = (String) document.get("type");
                     if ("list".equals(type))
                         emitter.emit(document.get("title"), null);
                 }
